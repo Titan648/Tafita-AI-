@@ -3,13 +3,14 @@ import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import Sidebar from './components/Sidebar';
-import { generateAIResponse } from './utils/aiResponses';
+import { sendMessageToGroq } from './services/groqService';
 import './App.css';
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -32,22 +33,52 @@ function App() {
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setError(null);
 
-    setTimeout(() => {
+    try {
+      // Send message to Groq with conversation history
+      const aiResponseText = await sendMessageToGroq(message, messages);
+
       const aiResponse = {
         id: Date.now() + 1,
-        text: generateAIResponse(message),
+        text: aiResponseText,
         sender: 'ai',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error:', error);
+      
+      let errorMessage = 'Sorry, I encountered an error. ';
+      
+      if (error.message.includes('API key')) {
+        errorMessage += 'Please configure your Groq API key in the .env file.';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage += 'Rate limit reached. Please try again in a moment.';
+      } else {
+        errorMessage += 'Please try again.';
+      }
+
+      setError(errorMessage);
+
+      const errorResponse = {
+        id: Date.now() + 1,
+        text: errorMessage,
+        sender: 'ai',
+        timestamp: new Date(),
+        isError: true
+      };
+
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleNewChat = () => {
     setMessages([]);
+    setError(null);
   };
 
   return (
@@ -65,16 +96,19 @@ function App() {
           {messages.length === 0 ? (
             <div className="welcome-screen">
               <h1>Tafita AI</h1>
-              <p>How can I help you today?</p>
+              <p>Powered by Groq - Lightning Fast AI</p>
               <div className="example-prompts">
                 <button onClick={() => handleSendMessage("What is artificial intelligence?")}>
                   What is artificial intelligence?
                 </button>
-                <button onClick={() => handleSendMessage("Explain quantum computing")}>
-                  Explain quantum computing
+                <button onClick={() => handleSendMessage("Explain quantum computing in simple terms")}>
+                  Explain quantum computing in simple terms
                 </button>
-                <button onClick={() => handleSendMessage("Write a poem about nature")}>
-                  Write a poem about nature
+                <button onClick={() => handleSendMessage("Write a short poem about technology")}>
+                  Write a short poem about technology
+                </button>
+                <button onClick={() => handleSendMessage("Help me learn React")}>
+                  Help me learn React
                 </button>
               </div>
             </div>
@@ -90,6 +124,7 @@ function App() {
                     <span></span>
                     <span></span>
                   </div>
+                  <span className="loading-text">Tafita is thinking...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
