@@ -29,7 +29,7 @@
 
 .welcome-screen h1 {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -37,7 +37,7 @@
 }
 
 .welcome-screen p {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #8e8ea0;
   margin-bottom: 2rem;
 }
@@ -59,6 +59,7 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.95rem;
+  text-align: left;
 }
 
 .example-prompts button:hover {
@@ -77,12 +78,12 @@
   align-items: center;
   padding: 24px;
   background: #444654;
+  gap: 12px;
 }
 
 .loading-dots {
   display: flex;
   gap: 8px;
-  margin-left: 12px;
 }
 
 .loading-dots span {
@@ -99,6 +100,11 @@
 
 .loading-dots span:nth-child(2) {
   animation-delay: -0.16s;
+}
+
+.loading-text {
+  color: #8e8ea0;
+  font-size: 0.9rem;
 }
 
 @keyframes bounce {
